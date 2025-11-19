@@ -1,0 +1,14 @@
+FROM python:3.12
+WORKDIR /app
+
+COPY scraper/ /app/scraper/
+COPY scraper/requirements.txt /app/requirements.txt
+COPY database/ /app/database/
+COPY etl/ /app/etl/
+COPY ai/ /app/ai/
+COPY run_all.py /app/run_all.py
+
+RUN pip install --no-cache-dir -r /app/requirements.txt
+RUN playwright install --with-deps
+
+CMD ["python", "run_all.py"]

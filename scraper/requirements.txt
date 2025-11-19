@@ -1,0 +1,12 @@
+requests
+beautifulsoup4
+lxml
+
+playwright
+selenium
+webdriver-manager
+
+pandas
+python-dotenv
+psycopg2-binary
+sqlalchemy

@@ -1,0 +1,61 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: project
+    ports:
+      - "5432:5432"
+  scraper:
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    build:
+      context: .
+      dockerfile: Dockerfile.scraper
+    container_name: scraper
+    working_dir: /app
+    volumes:
+      - ./scraper:/app/scraper
+      - ./database:/app/database
+      - ./etl:/app/etl
+      - ./ai:/app/ai
+      - ./run_all.py:/app/run_all.py
+    environment:
+      PYTHONUNBUFFERED: 1
+    command: ["sh", "-c", "while true; do python3 run_all.py; sleep 300; done"]
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: api
+    working_dir: /app
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./api:/app
+    environment:
+      PYTHONUNBUFFERED: 1
+    command: ["python", "server.py"]
+
+  dashboard:
+    build:
+      context: ./dashboard/nextjs-app
+      dockerfile: Dockerfile
+    container_name: dashboard
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./dashboard/nextjs-app:/app
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx-proxy
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
