@@ -33,14 +33,12 @@ services:
       context: ./api
       dockerfile: Dockerfile
     container_name: api
-    working_dir: /app
     ports:
-      - "5001:5001"
-    volumes:
-      - ./api:/app
+    - "5001:8000"
     environment:
       PYTHONUNBUFFERED: 1
     command: ["python", "server.py"]
+
 
   dashboard:
     build:
@@ -49,12 +47,12 @@ services:
     container_name: dashboard
     ports:
       - "3000:3000"
-    volumes:
-      - ./dashboard/nextjs-app:/app
+    #volumes:
+    # - ./dashboard/nextjs-app:/app
 
   nginx:
     image: nginx:latest
-    container_name: nginx-proxy
+    container_name: nginx
     ports:
       - "80:80"
     volumes:

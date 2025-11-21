@@ -9,6 +9,7 @@ class Scraper:
                 async with async_playwright() as p:
                         browser = await p.chromium.launch(headless=True)
                         page = await browser.new_page()
+
                         await page.goto(url, timeout=self.timeout * 1000)
 
                         if scroll:
@@ -22,23 +23,16 @@ class Scraper:
 
                         for item in items:
                                 hotel_el = await item.query_selector(selectors.get("hotel"))
-                                hotel = await hotel_el.inner_text() if hotel_el else None
-
                                 price_el = await item.query_selector(selectors.get("price"))
-                                price = await price_el.inner_text() if price_el else None
-
                                 score_el = await item.query_selector(selectors.get("score"))
-                                score = await score_el.inner_text() if score_el else None
-
                                 link_el = await item.query_selector(selectors.get("link"))
-                                link = await link_el.get_attribute("href") if link_el else None
 
-                                results.append({
-                                        "hotel": hotel,
-                                        "price": price,
-                                        "score": score,
-                                        "link": link
-                                })
+                results.append({
+                        "hotel": await hotel_el.inner_text() if hotel_el else None,
+                        "price": await price_el.inner_text() if price_el else None,
+                        "score": await score_el.inner_text() if score_el else None,
+                        "link": await link_el.get_attribute("href") if link_el else None
+                })
 
                 await browser.close()
                 return results

@@ -7,7 +7,7 @@ import time
 from datetime import datetime
 
 from scraper.booking_scraper import scrape_booking
-from scraper.hurb_scraper import scrape_hurb
+#from scraper.hurb_scraper import scrape_hurb
 from scraper.decolar_scraper import scrape_decolar
 from scraper.cvc_scraper import scrape_cvc
 
@@ -58,8 +58,8 @@ async def executar_tudo():
     await executar_scraper("Booking", scrape_booking, inserir_hoteis)
     await asyncio.sleep(intervalo)
 
-    await executar_scraper("Hurb", scrape_hurb, inserir_hoteis)
-    await asyncio.sleep(intervalo)
+    #await executar_scraper("Hurb", scrape_hurb, inserir_hoteis)
+    #await asyncio.sleep(intervalo)
 
     await executar_scraper("Decolar", scrape_decolar, inserir_pacotes)
     await asyncio.sleep(intervalo)

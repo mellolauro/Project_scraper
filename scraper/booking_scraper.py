@@ -9,6 +9,6 @@ async def scrape_booking():
         'hotel': 'div[data-testid="title"]',
         'price': 'span[data-testid="price-and-discounted-price"]',
         'score': 'div[data-testid="review-score"]',
-        'link': 'a'
+        "link": 'a[data-testid="title-link"]'
     }
     return await s.scrape(url, selectors, scroll=True, wait=4)

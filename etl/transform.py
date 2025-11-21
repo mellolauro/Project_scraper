@@ -11,9 +11,6 @@ def limpar_preco(p):
     except:
         return None
 
-
-
-
 def transformar_df(df):
     df = df.copy()
     if 'price' in df.columns:
