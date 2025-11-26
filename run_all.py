@@ -58,9 +58,6 @@ async def executar_tudo():
     await executar_scraper("Booking", scrape_booking, inserir_hoteis)
     await asyncio.sleep(intervalo)
 
-    #await executar_scraper("Hurb", scrape_hurb, inserir_hoteis)
-    #await asyncio.sleep(intervalo)
-
     await executar_scraper("Decolar", scrape_decolar, inserir_pacotes)
     await asyncio.sleep(intervalo)
 

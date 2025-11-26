@@ -3,6 +3,7 @@ beautifulsoup4
 lxml
 
 playwright
+playwright-stealth==1.0.6
 selenium
 webdriver-manager
 

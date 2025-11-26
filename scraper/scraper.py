@@ -2,37 +2,74 @@ import asyncio
 from playwright.async_api import async_playwright
 
 class Scraper:
-        def __init__(self, timeout=10):
+        def __init__(self, timeout=30):
                 self.timeout = timeout
 
-        async def scrape(self, url, selectors, scroll=False, wait=0):
+        async def _launch_browser(self, p):
+                browser = await p.chromium.launch(
+                headless=True,
+                args=[
+                "--disable-gpu",
+                "--no-sandbox",
+                "--disable-dev-shm-usage",
+                "--disable-setuid-sandbox",
+                "--no-zygote"
+                ]
+        )
+                context = await browser.new_context()
+                page = await context.new_page()
+                return browser, context, page
+
+        async def scrape(self, url, selectors, scroll=False, wait=3):
                 async with async_playwright() as p:
-                        browser = await p.chromium.launch(headless=True)
-                        page = await browser.new_page()
+                        browser, context, page = await self._launch_browser(p)
 
                         await page.goto(url, timeout=self.timeout * 1000)
+                        await page.wait_for_timeout(wait * 1000)
+
 
                         if scroll:
-                                await page.evaluate("window.scrollBy(0, document.body.scrollHeight);")
+                                await page.evaluate("""
+                                        new Promise(resolve => {
+                                        let totalHeight = 0;
+                                        const distance = 500;
+                                        const timer = setInterval(() => {
+                                        window.scrollBy(0, distance);
+                                        totalHeight += distance;
+                                        if (totalHeight >= document.body.scrollHeight) {
+                                        clearInterval(timer);
+                                        resolve();
+                                        }
+                                }, 200);
+                        });
+                        """)
 
-                        if wait:
-                                await page.wait_for_timeout(wait * 1000)
+                items = await page.query_selector_all(selectors['item'])
+                results = []
 
-                        items = await page.query_selector_all(selectors["item"])
-                        results = []
+                for item in items:
+                        try:
+                                hotel = await item.query_selector(selectors['hotel'])
+                                hotel = await hotel.inner_text() if hotel else None
 
-                        for item in items:
-                                hotel_el = await item.query_selector(selectors.get("hotel"))
-                                price_el = await item.query_selector(selectors.get("price"))
-                                score_el = await item.query_selector(selectors.get("score"))
-                                link_el = await item.query_selector(selectors.get("link"))
+                                price = await item.query_selector(selectors['price'])
+                                price = await price.inner_text() if price else None
 
-                results.append({
-                        "hotel": await hotel_el.inner_text() if hotel_el else None,
-                        "price": await price_el.inner_text() if price_el else None,
-                        "score": await score_el.inner_text() if score_el else None,
-                        "link": await link_el.get_attribute("href") if link_el else None
-                })
+                                score = await item.query_selector(selectors['score'])
+                                score = await score.inner_text() if score else None
 
-                await browser.close()
-                return results
+                                link = await item.query_selector(selectors['link'])
+                                link = await link.get_attribute("href") if link else None
+
+                                results.append({
+                                        "hotel": hotel,
+                                        "price": price,
+                                        "score": score,
+                                        "link": link
+                                })
+                        except Exception as e:
+                                print("Erro no item:", e)
+                                continue
+
+                        await browser.close()
+                        return results

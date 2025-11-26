@@ -1,14 +1,62 @@
-FROM python:3.12
+# Base oficial do Playwright com todas dependências do Chromium
+FROM mcr.microsoft.com/playwright/python:latest
+
+# Diretório padrão do app
 WORKDIR /app
 
-COPY scraper/ /app/scraper/
+# ---------------------------------------------------------
+# 1) Instala dependências (ANTES de mudar usuário)
+# ---------------------------------------------------------
+
 COPY scraper/requirements.txt /app/requirements.txt
+
+RUN pip install --no-cache-dir -r /app/requirements.txt
+
+# Instalar playwright-stealth ANTES de trocar para pwuser
+RUN pip install playwright-stealth
+
+# Chromium já vem instalado na imagem oficial, mas garantimos
+RUN playwright install chromium
+
+RUN apt-get update && apt-get install -y \
+    libnss3 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libcups2 \
+    libdrm2 \
+    libxkbcommon0 \
+    libxcomposite1 \
+    libxrandr2 \
+    libxdamage1 \
+    libxfixes3 \
+    libxshmfence1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# ---------------------------------------------------------
+# 2) Copiar todo o código do scraper
+# ---------------------------------------------------------
+
+COPY scraper/ /app/scraper/
 COPY database/ /app/database/
 COPY etl/ /app/etl/
 COPY ai/ /app/ai/
 COPY run_all.py /app/run_all.py
 
-RUN pip install --no-cache-dir -r /app/requirements.txt
-RUN playwright install --with-deps
+# LOGS
+RUN mkdir -p /app/logs
 
-CMD ["python", "run_all.py"]
+# ---------------------------------------------------------
+# 3) Garantir permissões corretas
+# ---------------------------------------------------------
+
+# Dar permissão total para pwuser
+#RUN chown -R pwuser:pwuser /app
+
+# Trocar para usuário final
+#USER pwuser
+
+# ---------------------------------------------------------
+# 4) Comando de execução (loop infinito a cada 5 minutos)
+# ---------------------------------------------------------
+
+CMD ["sh", "-c", "while true; do python3 run_all.py; sleep 300; done"]

@@ -26,6 +26,7 @@ services:
       - ./run_all.py:/app/run_all.py
     environment:
       PYTHONUNBUFFERED: 1
+    shm_size: '2gb'  
     command: ["sh", "-c", "while true; do python3 run_all.py; sleep 300; done"]
 
   api:
